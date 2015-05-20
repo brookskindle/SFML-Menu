@@ -37,7 +37,7 @@ void MenuLayout::setOrigin(const sf::Vector2f &origin) {
 }//end setOrigin
 
 
-void MenuLayout::apply(std::vector<MenuOption> &options,
+void MenuLayout::apply(std::vector<sf::Text> &options,
 		sf::Vector2u windowSize) {
 	if(options.size() == 0) { return; } //no options, do nothing
 
@@ -46,7 +46,7 @@ void MenuLayout::apply(std::vector<MenuOption> &options,
 	orig.y = windowSize.y * this->origin.y;
 	//since we have n number of options, calculate where the first one will go
 	int n = options.size();
-	auto osize = options[0].getText().getGlobalBounds(); //assume all options are the same height
+	auto osize = options[0].getGlobalBounds(); //assume all options are the same height
 	if(n % 2) { //odd number of options
 		orig.y = orig.y - (int)(n / 2) * (osize.height + spacing);
 	}
@@ -54,8 +54,7 @@ void MenuLayout::apply(std::vector<MenuOption> &options,
 		orig.y = orig.y - (spacing/2.0f) - (osize.height/2.0f) - (n/2 - 1)*(spacing+osize.height);
 	}
 
-	for(MenuOption &option : options) {
-		sf::Text &text = option.getText();
+	for(sf::Text &text : options) { //use reference to update the position
 		sf::FloatRect rect = text.getLocalBounds();
 		//center text origin on the middle of the text
 		text.setOrigin(rect.left + rect.width/2.0f,
@@ -72,19 +71,25 @@ void MenuLayout::apply(std::vector<MenuOption> &options,
 void Menu::display(sf::RenderWindow &window) {
 	sf::Sprite bg;
 	bg.setTexture(background);
-	for(auto &o : options) { //make all options use the same font
-		o.getText().setFont(font);
+	bg.setScale(window.getSize().x / (float)background.getSize().x,
+			window.getSize().y / (float)background.getSize().y);
+	std::vector<sf::Text> texts;
+	sf::Text t = this->templateText;
+	for(const auto &o : options) {
+		t.setString(o.getText());
+		texts.push_back(t);
 	}
 
 	window.clear();
 	window.draw(bg); //draw background
-	layout.apply(options, window.getSize()); //apply the layout on the options
-	for(auto &o : options) { //draw the options
-		window.draw(o.getText());
+	layout.apply(texts, window.getSize()); //apply the layout on the options
+	for(auto &t : texts) { //draw the options
+		window.draw(t);
 	}
 	window.display();
 
 	bool finished = false;
+	int i = 0;
 	sf::Vector2i mousePos;
 	sf::Clock clock;
 	while(!finished) {
@@ -99,16 +104,16 @@ void Menu::display(sf::RenderWindow &window) {
 				case sf::Event::GainedFocus:
 					window.clear();
 					window.draw(bg); //draw background
-					for(auto &o : options) {
-						window.draw(o.getText());
+					for(auto &t : texts) {
+						window.draw(t);
 					}
 					window.display();
 					break;
 				case sf::Event::MouseButtonReleased:
-					for(auto &o : options) {
-						if(o.getText().getGlobalBounds().contains(e.mouseButton.x, e.mouseButton.y)) {
+					for(i = 0; i < texts.size(); i++) {
+						if(texts[i].getGlobalBounds().contains(e.mouseButton.x, e.mouseButton.y)) {
 							//this option was clicked
-							o.choose();
+							options[i].select();
 							finished = true;
 							break;
 						}
@@ -117,14 +122,14 @@ void Menu::display(sf::RenderWindow &window) {
 				default:
 					break;
 			}
-		}
+		}//end while(window.pollEvent(e))
 		sf::sleep(sf::milliseconds(100));
 		if(timeout > sf::seconds(0.0) && clock.getElapsedTime() >= timeout) {
 			//this menu has a timeout and we have reached it
 			finished = true;
 			if(timeoutCallback) { timeoutCallback(); }
 		}
-	}
+	}//end while(!finished)
 }//end display
 
 
@@ -143,11 +148,6 @@ void Menu::setBackground(const std::string &path) {
 }//end setBackground
 
 
-void Menu::setFont(const std::string &path) {
-	font.loadFromFile(path);
-}//end setFont
-
-
 void Menu::setTimeout(sf::Time timeout, std::function<void(void)> callback) {
 	this->timeout = timeout;
 	this->timeoutCallback = callback;
@@ -162,3 +162,8 @@ void Menu::setExitCallback(std::function<void(void)> callback) {
 void Menu::setLayout(MenuLayout layout) {
 	this->layout = layout;
 }//end setLayout
+
+
+void Menu::setTemplateText(const sf::Text &t) {
+	templateText = t;
+}//end setTemplateText

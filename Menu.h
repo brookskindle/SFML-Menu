@@ -10,16 +10,17 @@ namespace sfm {
 
 	class MenuOption {
 		public:
-			MenuOption(sf::Text text,
+			MenuOption(std::string text = "",
 					std::function<void(void)> callback = nullptr)
 				:text(text), callback(callback) { }
-			void choose() { if(callback) {callback();} }
-			sf::Text &getText() { return text; }
+			void select() { if(callback) {callback();} }
+			void setText(const std::string &text) { this->text = text; }
+			const std::string &getText() const { return text; }
 			void setCallback(std::function<void(void)> callback) {
 				this->callback = callback;
 			}
 		private:
-			sf::Text text;
+			std::string text;
 			std::function<void(void)> callback;
 	};//end MenuOption
 
@@ -35,7 +36,7 @@ namespace sfm {
 			static const MenuLayout VerticleLeft;
 			static const MenuLayout VerticleRight;
 		private:
-			void apply(std::vector<MenuOption> &options,
+			void apply(std::vector<sf::Text> &options,
 					sf::Vector2u windowSize);
 			unsigned int spacing; //spacing between each option 
 			//where on the screen (percentage wise) the MenuOptions revolve
@@ -49,19 +50,19 @@ namespace sfm {
 			void addOption(const MenuOption &option);
 			void clearOptions();
 			void setBackground(const std::string &path);
-			void setFont(const std::string &path);
 			void setTimeout(sf::Time timeout,
 					std::function<void(void)> callback);
 			void setExitCallback(std::function<void(void)> callback);
 			void setLayout(MenuLayout style);
+			void setTemplateText(const sf::Text &t);
 		private:
 			std::vector<MenuOption> options;
 			sf::Texture background;
-			sf::Font font;
 			sf::Time timeout;
 			std::function<void(void)> timeoutCallback;
 			std::function<void(void)> exitCallback;
 			MenuLayout layout;
+			sf::Text templateText;
 	};//end Menu
 
 }//end namespace

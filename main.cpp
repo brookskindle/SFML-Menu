@@ -15,19 +15,19 @@ int main(void) {
 	
 	//create the main menu
 	sfm::Menu mainmenu;
-	sf::Text text;
-	text.setString("Say hello");
-	sfm::MenuOption opt(text, menuButton1);
+	sfm::MenuOption opt("Say Hello", menuButton1);
 	mainmenu.addOption(opt);
-	text.setString("Say goodbye!");
-	sfm::MenuOption opt2(text, menuButton2);
+	sfm::MenuOption opt2("Say Goodbye", menuButton2);
 	mainmenu.addOption(opt2);
-	text.setString("Call a lambda function");
-	sfm::MenuOption opt3(text, [](){cout << "Lambda functions rock!\n";});
+	sfm::MenuOption opt3("Lambda!", [](){cout << "Lambda functions rock!\n";});
 	mainmenu.addOption(opt3);
 	mainmenu.setLayout(sfm::MenuLayout::VerticleCentered);
 	mainmenu.setBackground("/home/brooks/Pictures/wallpaper/ironman.jpg");
-	mainmenu.setFont("/home/brooks/code/sfml_hotseat/resources/fonts/neuropool/NEUROPOL.ttf");
+	sf::Font font;
+	sf::Text text;
+	font.loadFromFile("/home/brooks/code/sfml_hotseat/resources/fonts/neuropool/NEUROPOL.ttf");
+	text.setFont(font);
+	mainmenu.setTemplateText(text);
 
 	//now create the window and display the menus
 	sf::RenderWindow window;
